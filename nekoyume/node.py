@@ -1,4 +1,5 @@
 import datetime
+import os
 import typing
 
 from requests import get, post
@@ -8,6 +9,8 @@ from sqlalchemy.orm.session import Session
 
 from .orm import db
 
+
+DEFAULT_BROADCAST_LIMIT = os.environ.get('BROADCAST_LIMIT', 100)
 
 __all__ = 'Node',
 
@@ -105,15 +108,15 @@ class Node(db.Model):
                         block_id = result['block_id']
                     except KeyError:
                         continue
-                    blocks = session.query(Block).filter(
+                    query = session.query(Block).filter(
                         Block.id.between(block_id, serialized_obj['id'])
-                    ).order_by(Block.id).all()
-                    while blocks:
+                    ).order_by(Block.id)
+                    count = query.count()
+                    while count > 0:
+                        sync_blocks = query.limit(DEFAULT_BROADCAST_LIMIT)
                         # TODO bulk api
-                        block = blocks[:500]
-                        del blocks[:500]
-                        for b in block:
-                            s = b.serialize(
+                        for block in sync_blocks:
+                            s = block.serialize(
                                 use_bencode=False,
                                 include_suffix=True,
                                 include_moves=True,
@@ -121,6 +124,7 @@ class Node(db.Model):
                             )
                             res = post(node.url + endpoint, json=s,
                                        timeout=3)
+                        count -= DEFAULT_BROADCAST_LIMIT
                 node.last_connected_at = datetime.datetime.utcnow()
                 session.add(node)
             except (ConnectionError, Timeout):
