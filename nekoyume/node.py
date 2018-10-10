@@ -87,15 +87,37 @@ class Node(db.Model):
                                 received node ignore my node when they
                                 broadcast received object.
         """
-
+        from .models import Block
         for node in session.query(cls):
             if sent_node and sent_node.url == node.url:
                 continue
             try:
                 if my_node:
                     serialized_obj['sent_node'] = my_node.url
-                post(node.url + endpoint, json=serialized_obj,
-                     timeout=3)
+                res = post(node.url + endpoint, json=serialized_obj,
+                           timeout=3)
+                if res.status_code == 403:
+                    result = res.json()
+                    try:
+                        block_id = result['block_id']
+                    except KeyError:
+                        continue
+                    blocks = session.query(Block).filter(
+                        Block.id.between(block_id, serialized_obj['id'])
+                    ).order_by(Block.id).all()
+                    while blocks:
+                        # TODO bulk api
+                        block = blocks[:500]
+                        del blocks[:500]
+                        for b in block:
+                            s = b.serialize(
+                                use_bencode=False,
+                                include_suffix=True,
+                                include_moves=True,
+                                include_hash=True
+                            )
+                            res = post(node.url + endpoint, json=s,
+                                       timeout=3)
                 node.last_connected_at = datetime.datetime.utcnow()
                 session.add(node)
             except (ConnectionError, Timeout):
