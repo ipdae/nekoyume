@@ -111,9 +111,11 @@ class Node(db.Model):
                     query = session.query(Block).filter(
                         Block.id.between(block_id, serialized_obj['id'])
                     ).order_by(Block.id)
-                    count = query.count()
-                    while count > 0:
-                        sync_blocks = query.limit(DEFAULT_BROADCAST_LIMIT)
+                    offset = 0
+                    while True:
+                        sync_blocks = query[
+                            offset:offset+DEFAULT_BROADCAST_LIMIT
+                        ]
                         # TODO bulk api
                         for block in sync_blocks:
                             s = block.serialize(
@@ -124,7 +126,9 @@ class Node(db.Model):
                             )
                             res = post(node.url + endpoint, json=s,
                                        timeout=3)
-                        count -= DEFAULT_BROADCAST_LIMIT
+                        offset += DEFAULT_BROADCAST_LIMIT
+                        if len(sync_blocks) < DEFAULT_BROADCAST_LIMIT:
+                            break
                 node.last_connected_at = datetime.datetime.utcnow()
                 session.add(node)
             except (ConnectionError, Timeout):

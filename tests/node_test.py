@@ -110,15 +110,23 @@ def test_broadcast_raise_exception(
         assert node.last_connected_at == now
 
 
-def test_node_broadcast_retry(fx_session: scoped_session,
-                              fx_user: User):
-    block = Block.create(fx_user, [])
+@mark.parametrize('limit, blocks, expected', [
+    (1, 2, 3),
+    (2, 5, 6),
+])
+def test_node_broadcast_retry(
+        fx_session: scoped_session,
+        fx_user: User, limit: int, blocks: int, expected: int
+):
+    for i in range(blocks):
+        block = Block.create(fx_user, [])
     url = 'http://test.neko'
     now = datetime.datetime.utcnow()
     node = Node(url=url, last_connected_at=now)
     fx_session.add(node)
     fx_session.flush()
-    with mock() as m:
+    patch = unittest.mock.patch('nekoyume.node.DEFAULT_BROADCAST_LIMIT', limit)
+    with mock() as m, patch:
         m.register_uri('POST', url, [
             {
                 'json': {
@@ -144,5 +152,5 @@ def test_node_broadcast_retry(fx_session: scoped_session,
                 include_hash=True
             )
         ) is True
-        assert m.call_count == 2
+        assert m.call_count == expected
         assert node.last_connected_at > now
