@@ -75,6 +75,7 @@ if __name__ == '__main__':
                 'pytest-flake8 >= 1.0.2, < 1.1.0',
                 'pytest-localserver >= 0.4.1, < 0.5',
                 'codecov >= 2.0.15, < 2.1.0',
+                'requests-mock >= 1.5.2, < 1.6.0',
             ],
         },
         package_data={
