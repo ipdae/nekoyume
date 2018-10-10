@@ -104,10 +104,8 @@ class Node(db.Model):
                            timeout=3)
                 if res.status_code == 403:
                     result = res.json()
-                    try:
-                        block_id = result['block_id']
-                    except KeyError:
-                        continue
+                    # 0 is Genesis block.
+                    block_id = result.get('block_id', 0)
                     query = session.query(Block).filter(
                         Block.id.between(block_id, serialized_obj['id'])
                     ).order_by(Block.id)
