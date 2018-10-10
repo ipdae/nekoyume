@@ -9,6 +9,9 @@ from sqlalchemy.orm.session import Session
 from .orm import db
 
 
+__all__ = 'Node',
+
+
 class Node(db.Model):
     """This object contains node information you know."""
 
