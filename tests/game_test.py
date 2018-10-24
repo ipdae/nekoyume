@@ -204,3 +204,8 @@ def test_post_move_broadcasting(
         broadcast = args['broadcast']
         assert isinstance(broadcast, typing.Callable)
         assert broadcast.__name__ == 'broadcast_move'
+
+
+def test_join(fx_test_client: FlaskClient):
+    res = fx_test_client.get('/join/')
+    assert res.status_code == 200

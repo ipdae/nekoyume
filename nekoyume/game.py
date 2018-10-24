@@ -1,8 +1,10 @@
 import functools
 
 from coincurve import PrivateKey
-from flask import (Blueprint, Response, g, redirect, render_template, request,
-                   session, url_for)
+from flask import (
+    Blueprint, Response, g, jsonify, redirect, render_template, request,
+    session, url_for
+)
 from flask_babel import Babel
 from sqlalchemy import func
 
@@ -238,3 +240,11 @@ def export_private_key():
             'Content-Type': 'text/csv',
         }
     )
+
+
+@game.route('/join/', methods=['GET'])
+def join():
+    key = PrivateKey()
+    key_hex = key.to_hex()
+    session['private_key'] = key_hex
+    return jsonify(key_hex)
