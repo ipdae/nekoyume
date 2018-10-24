@@ -183,16 +183,15 @@ def get_first_class():
 @login_required
 def post_move():
     unconfirmed_move = get_unconfirmed_move(g.user.address)
-
     if unconfirmed_move:
         return redirect(url_for('.get_game'))
 
     if request.values.get('name') == 'hack_and_slash':
         if g.user.avatar().dead:
             return redirect(url_for('.get_game'))
-        move = g.user.hack_and_slash(request.values.get('weapon'),
-                                     request.values.get('armor'),
-                                     request.values.get('food'),)
+        move = g.user.hack_and_slash(request.values.get('weapon', type=int),
+                                     request.values.get('armor', type=int),
+                                     request.values.get('food', type=int),)
     if request.values.get('name') == 'sleep':
         move = g.user.sleep()
     if request.values.get('name') == 'level_up':

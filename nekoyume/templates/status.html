@@ -13,7 +13,7 @@
     <td>
       <div id="{{ prefix }}-{{ item.name.lower() }}"
           class="item item-{{ item.name.lower() }}">
-          <span class="equip" style="display: none;">E</span>
+          <span class="equip" style={% if not item.is_equipped %}"display: none;"{% endif %}>E</span>
           <span class="amount">{{ item.amount }}</span>
       </div>
       <div>{{ name }}</div>

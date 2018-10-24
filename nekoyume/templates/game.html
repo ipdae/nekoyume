@@ -338,7 +338,8 @@ div.history .exp {
       console.log("⚔");
       setInProgress(true);
       $.post("{{ url_for('game.post_move') }}", {
-        name: 'hack_and_slash'
+        name: 'hack_and_slash',
+        weapon: 0
       }, update);
     }
 

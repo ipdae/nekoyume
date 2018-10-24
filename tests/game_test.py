@@ -205,3 +205,24 @@ def test_post_move_broadcasting(
         broadcast = args['broadcast']
         assert isinstance(broadcast, typing.Callable)
         assert broadcast.__name__ == 'broadcast_move'
+
+
+def test_hack_and_slash_with_weapon(fx_test_client: FlaskClient,
+                                    fx_user: User, fx_session):
+    move = fx_user.create_novice('')
+    Block.create(fx_user, [move])
+    move = fx_user.hack_and_slash()
+    Block.create(fx_user, [move])
+    assert fx_user.avatar().items
+    with fx_test_client:
+        with fx_test_client.session_transaction() as sess:
+            sess['private_key'] = fx_user.private_key.to_hex()
+        res = fx_test_client.post('/session_moves', data={
+            'name': 'hack_and_slash',
+            'weapon': '0',
+        }, follow_redirects=True)
+    assert res.status_code == 200
+    block = Block.create(fx_user,
+                         fx_session.query(Move).filter_by(block_id=None).all())
+    assert block.moves[0].details == {'weapon': '0'}
+    assert fx_user.avatar().items[0].is_equipped

@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 import datetime
-from typing import List
+from typing import List, Optional
 
 from coincurve import PrivateKey, PublicKey
 from flask_caching import Cache
@@ -93,13 +93,15 @@ class User():
 
         return new_move
 
-    def hack_and_slash(self, weapon=None, armor=None, food=None):
+    def hack_and_slash(self, weapon: Optional[int]=None,
+                       armor: Optional[int]=None,
+                       food: Optional[int]=None):
         details = dict()
-        if weapon:
+        if type(weapon) == int:
             details['weapon'] = weapon
-        if armor:
+        if type(armor) == int:
             details['armor'] = armor
-        if food:
+        if type(food) == int:
             details['food'] = food
         return self.move(HackAndSlash(details=details))
 
